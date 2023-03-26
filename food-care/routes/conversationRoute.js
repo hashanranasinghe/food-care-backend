@@ -5,8 +5,8 @@ const validateToken = require("../middleware/validateTokenHandler");
 router.use(validateToken);
 
 router.route("/").post(createConversation);
-router.route("/:id").get(getConversation);
-router.route("/chats/:userId").get(getConversationsofUsers)
+router.route("/:userId/:receiverId").get(getConversation);
+router.route("/chats").get(getConversationsofUsers)
 
 module.exports = router;
 

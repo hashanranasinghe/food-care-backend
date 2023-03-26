@@ -29,7 +29,9 @@ const createConversation = asyncHandler(async (req,res)=>{
 
 //get conversation===================================================================================
 const getConversation = asyncHandler(async (req,res)=>{
-    const conversation = await Conversation.findById(req.params.id);
+  const conversation = await Conversation.findOne({
+    members: { $all: [req.params.userId, req.params.receiverId], $size: 2 }
+  });
     if (!conversation) {
         res.status(404);
         throw new Error("Conversation not found");
@@ -41,7 +43,7 @@ const getConversation = asyncHandler(async (req,res)=>{
 //get conversations of user =============================================================================
 const getConversationsofUsers = asyncHandler(async (req,res)=>{
     const conversations = await Conversation.find({
-        members:{$in: [req.params.userId]},
+        members:{$in: [req.user.id]},
     });
     if (!conversations) {
         res.status(404);

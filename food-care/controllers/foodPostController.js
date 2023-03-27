@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Food = require("../models/foodPostModel");
+const validator = require('validator');
 const fs = require("fs");
 
 //get all food post======================================================================
@@ -24,6 +25,7 @@ const createFoodPost = async (req, res, next) => {
     other: req.body.other,
     pickupTimes: req.body.pickupTimes,
     listDays: req.body.listDays,
+    isShared:validator.toBoolean(req.body.isShared),
     location: {
       lan: req.body.location.lan,
       lon: req.body.location.lon,
@@ -104,6 +106,7 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   food.other = req.body.other || food.other;
   food.pickupTimes = req.body.pickupTimes || food.pickupTimes;
   food.listDays = req.body.listDays || food.listDays;
+  food.isShared = (validator.toBoolean(req.body.isShared ))|| food.isShared;
   food.location.lan = req.body.location.lan || food.location.lan;
   food.location.lon = req.body.location.lon || food.location.lon;
 
@@ -115,6 +118,8 @@ const updateFoodPost = asyncHandler(async (req, res) => {
     food: updatedFood,
   });
 });
+
+
 
 //delete a food======================================================================
 const deleteFoodPost = asyncHandler(async (req, res) => {

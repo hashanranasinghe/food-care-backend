@@ -9,19 +9,17 @@ const port = process.env.PORT || 5000;
 
 connectDb();
 app.use(express.json());
-
+app.set("view engine", "ejs");
 
 app.use("/api/forums", require("./routes/forumRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/food", require("./routes/foodPostRoute"));
-app.use("/api/conversation",require("./routes/conversationRoute"));
-app.use("/api/message",require("./routes/chatRoute"));
+app.use("/api/conversation", require("./routes/conversationRoute"));
+app.use("/api/message", require("./routes/chatRoute"));
 
-
-
-app.use('/uploads',express.static('uploads'));
-app.use('/foodimages',express.static('foodimages'));
-app.use('/profiles',express.static('profiles'));
+app.use("/uploads", express.static("uploads"));
+app.use("/foodimages", express.static("foodimages"));
+app.use("/profiles", express.static("profiles"));
 app.use(errorHandler);
 
 server.listen(port, () => {

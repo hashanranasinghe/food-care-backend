@@ -16,6 +16,10 @@ const foodSchema = new mongoose.Schema(
     pickupTimes: { type: String },
     listDays: { type: String },
     isShared:{type:Boolean},
+    requests: {
+      type: Array,
+      default: [],
+    },
     location: {
       lan: {
         type: String,

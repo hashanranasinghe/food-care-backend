@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Food = require("../models/foodPostModel");
-const validator = require('validator');
+const validator = require("validator");
 const fs = require("fs");
 
 //get all food post======================================================================
@@ -25,7 +25,7 @@ const createFoodPost = async (req, res, next) => {
     other: req.body.other,
     pickupTimes: req.body.pickupTimes,
     listDays: req.body.listDays,
-    isShared:validator.toBoolean(req.body.isShared),
+    isShared: validator.toBoolean(req.body.isShared),
     location: {
       lan: req.body.location.lan,
       lon: req.body.location.lon,
@@ -106,7 +106,7 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   food.other = req.body.other || food.other;
   food.pickupTimes = req.body.pickupTimes || food.pickupTimes;
   food.listDays = req.body.listDays || food.listDays;
-  food.isShared = (validator.toBoolean(req.body.isShared ))|| food.isShared;
+  food.isShared = validator.toBoolean(req.body.isShared) || food.isShared;
   food.location.lan = req.body.location.lan || food.location.lan;
   food.location.lon = req.body.location.lon || food.location.lon;
 
@@ -119,7 +119,25 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   });
 });
 
+//requet for food================================================================
+const requestFood = asyncHandler(async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
 
+    if (req.body.requesterId == "") {
+      if (!food.requests.includes(req.user.id)) {
+        await food.updateOne({ $push: { requests: req.user.id } });
+        res.status(200).json("The food has been requested..");
+      } else {
+        await food.updateOne({ $pull: { requests: req.user.id } });
+        res.status(200).json("The request has been canceled.");
+      }
+    } else {
+      await food.updateOne({ $pull: { requests: req.body.requesterId } });
+      res.status(200).json("The request has been canceled.");
+    }
+  } catch (err) {}
+});
 
 //delete a food======================================================================
 const deleteFoodPost = asyncHandler(async (req, res) => {
@@ -152,7 +170,6 @@ const deleteFoodPost = asyncHandler(async (req, res) => {
   });
 });
 
-
 //delete a food images======================================================================
 const deleteFoodPostImages = asyncHandler(async (req, res) => {
   const food = await Food.findOne({
@@ -175,7 +192,7 @@ const deleteFoodPostImages = asyncHandler(async (req, res) => {
           } else {
             const index = food.imageUrls.indexOf(url);
             console.log(index);
-           
+
             if (index !== -1) {
               food.imageUrls.splice(index, 1);
             }
@@ -198,8 +215,6 @@ const deleteFoodPostImages = asyncHandler(async (req, res) => {
   });
 });
 
-
-
 module.exports = {
   getFoodPosts,
   createFoodPost,
@@ -208,5 +223,6 @@ module.exports = {
   getOwnFoods,
   getOwnFood,
   getFoodPost,
-  deleteFoodPostImages
+  deleteFoodPostImages,
+  requestFood,
 };

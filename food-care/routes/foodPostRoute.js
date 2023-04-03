@@ -9,6 +9,7 @@ const {
   getFoodPost,
   deleteFoodPostImages,
   shareFoodPost,
+  requestFood
 } = require("../controllers/foodPostController");
 const router = express.Router();
 const validateToken = require("../middleware/validateTokenHandler");
@@ -22,6 +23,7 @@ router
   .post(upload.array("imageUrls", 5), createFoodPost);
 router.route("/ownfood").get(getOwnFoods);
 router.route("/:id").get(getFoodPost);
+router.route("/:id/request").put(requestFood);
 
 router
   .route("/ownfood/:id")

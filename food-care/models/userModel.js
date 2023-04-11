@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema(
     imageUrl: { type: String },
     isVerify:{type:Boolean},
     verificationToken:{type:String},
+    deviceToken: {
+      type: Array,
+    },
     password: { type: String, required: [true, "Please enter the password."] },
    
   },

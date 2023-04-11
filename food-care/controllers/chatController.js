@@ -1,32 +1,60 @@
 const express = require("express");
 const Chat = require("../models/chatModel");
 const asyncHandler = require("express-async-handler");
-
-const chatModel = require('../models/chatModel');
+const admin = require("firebase-admin");
+const fcm = require("fcm-node");
+const serviceAccount = require("../config/push-notification-key.json");
+const certPath = admin.credential.cert(serviceAccount);
+const FCM = new fcm(certPath);
+const User = require("../models/userModel");
 
 //add==========================================================================
-const createMessage = asyncHandler(async (req,res)=>{
-  const newMessage =new Chat(req.body);
+const createMessage = asyncHandler(async (req, res) => {
+  const newMessage = new Chat(req.body);
+  const receiverId = req.body.receiverId;
+  const receiver = await User.findById(receiverId);
+  const sender = await User.findById(req.body.sender_id);
+  if (!receiver || !sender) {
+    throw new Error("Something went to wrong");
+  }
+console.log(receiver);
+  try {
+    var message = {
+      registration_ids: receiver.deviceToken,
 
-  newMessage
-  .save()
-  .then((response) => {
-    res.json({
-      message: "msg create.",
+      notification: {
+        title: sender.name,
+        body: req.body.message,
+      },
 
+      data: {
+        type: "chat",
+        userId: receiverId,
+        receiverName:sender.name,
+        conversationId:req.body.conversationId,
+        receiverId:req.body.sender_id
+      },
+    };
+
+    FCM.send(message, function (err, response) {
+      if (err) {
+        res.status(500);
+        throw new Error(err);
+      } else {
+        console.log("notification sent");
+        res.status(200).json({
+          message: "notification sent",
+        });
+        newMessage.save();
+      }
     });
-  })
-  .catch((error) => {
-    res.json({
-      message: error,
-      
-    });
-  });
+  } catch (e) {
+    throw e;
+  }
 });
 
-
 //get==========================================================================
-const getMessages = asyncHandler(async (req,res)=>{
+const getMessages = asyncHandler(async (req, res) => {
   const getMessageList = await Chat.find({
     conversationId: req.params.conversationId,
   });
@@ -35,8 +63,6 @@ const getMessages = asyncHandler(async (req,res)=>{
     throw new Error("Messages not found");
   }
   res.status(200).json(getMessageList);
-
-
 });
 
-module.exports = {createMessage,getMessages}
+module.exports = { createMessage, getMessages };

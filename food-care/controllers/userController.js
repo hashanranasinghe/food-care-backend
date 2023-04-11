@@ -4,18 +4,22 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const axios = require("axios");
+const { verificationEmail, resetEmail } = require("../middleware/emailService");
+const { FirebaseDynamicLinks } = require("firebase-dynamic-links");
+const firebaseDynamicLinks = new FirebaseDynamicLinks(process.env.WEB_API_KEY);
 
 //register user============================================================================
 const registerUser = asyncHandler(async (req, res, next) => {
   console.log("=====================");
 
   if (
-    (!req.body.name ||
-      !req.body.email ||
-      !req.body.phone ||
-      !req.body.isVerify ||
-      !req.body.verificationToken,
-    !req.body.password)
+    !req.body.name ||
+    !req.body.email ||
+    !req.body.phone ||
+    !req.body.isVerify ||
+    !req.body.verificationToken ||
+    !req.body.deviceToken ||
+    !req.body.password
   ) {
     res.status(400);
     throw new Error("Name, email,phone,password are required.");
@@ -28,7 +32,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
   //hash password
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
-  console.log(hashedPassword);
+  console.log(req.body.deviceToken);
   const user = new User({
     name: req.body.name,
     email: req.body.email,
@@ -36,6 +40,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     address: req.body.address,
     isVerify: validator.toBoolean(req.body.isVerify),
     verificationToken: req.body.verificationToken,
+    deviceToken: [req.body.deviceToken],
     password: hashedPassword,
   });
   if (req.file) {
@@ -46,6 +51,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   user
     .save()
     .then((response) => {
+      verificationEmail(user.email, user.verificationToken, user.name);
       res.json({
         message: "Users uploaded.",
         user: user,
@@ -84,14 +90,17 @@ const verifyUser = asyncHandler(async (req, res) => {
 
 //login user======================================================================
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email, password, deviceToken } = req.body;
+  if (!email || !password || !deviceToken) {
     res.status(400);
     throw new Error("All fields requeried.");
   }
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
+    if (!user.deviceToken.includes(deviceToken)) {
+      await user.updateOne({ $push: { deviceToken: deviceToken } });
+    }
     const accessToken = jwt.sign(
       {
         user: {
@@ -99,6 +108,7 @@ const loginUser = asyncHandler(async (req, res) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          deviceToken: user.deviceToken,
           imageUrl: user.imageUrl,
           password: user.password,
           address: user.address,
@@ -171,7 +181,7 @@ const updateUser = asyncHandler(async (req, res) => {
 //foget password
 const postForgetPassowrd = asyncHandler(async (req, res, next) => {
   //post
-  const { email } = req.body;
+  const email = req.body.email;
   if (!email) {
     res.status(400);
     throw new Error("Email requeried.");
@@ -198,7 +208,22 @@ const postForgetPassowrd = asyncHandler(async (req, res, next) => {
 
   const token = jwt.sign(payload, secret, { expiresIn: "15m" });
   const link = user.id + "/" + token;
-  res.status(200).json(link);
+
+  const { shortLink, previewLink } = await firebaseDynamicLinks.createLink({
+    dynamicLinkInfo: {
+      domainUriPrefix: "https://foodcare.page.link",
+      link: "https://www.foodcare.com/token?token=" + link,
+      androidInfo: {
+        androidPackageName: "com.example.food_care",
+      },
+    },
+  });
+
+  resetEmail(email, shortLink);
+
+  res.status(200).json({
+    message: "Reset link is sent.",
+  });
 });
 
 const postResetPassowrd = asyncHandler(async (req, res) => {
@@ -232,15 +257,13 @@ const postResetPassowrd = asyncHandler(async (req, res) => {
         throw new Error("Error updating user.");
       });
   } catch (e) {
-    
-    if(e.message == "jwt expired"){
-      res.status(401).json({ message: 'Invalid token' });
-    }else if(e.message == "invalid signature"){
-      res.status(404).json({ message: 'Invalid token' });
-    }else{
+    if (e.message == "jwt expired") {
+      res.status(401).json({ message: "Invalid token" });
+    } else if (e.message == "invalid signature") {
+      res.status(404).json({ message: "Invalid token" });
+    } else {
       console.log(e.message);
     }
-    
   }
 });
 

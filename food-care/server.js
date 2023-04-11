@@ -20,6 +20,9 @@ app.use("/api/message", require("./routes/chatRoute"));
 app.use("/uploads", express.static("uploads"));
 app.use("/foodimages", express.static("foodimages"));
 app.use("/profiles", express.static("profiles"));
+
+/*app.use("/api/notification",require("./routes/notificationRoute"));*/
+
 app.use(errorHandler);
 
 server.listen(port, () => {

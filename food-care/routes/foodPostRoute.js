@@ -9,7 +9,7 @@ const {
   getFoodPost,
   deleteFoodPostImages,
   shareFoodPost,
-  requestFood
+  requestFood,
 } = require("../controllers/foodPostController");
 const router = express.Router();
 const validateToken = require("../middleware/validateTokenHandler");

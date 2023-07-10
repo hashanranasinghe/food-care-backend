@@ -104,6 +104,7 @@ const updateForum = asyncHandler(async (req, res) => {
 
 //like post===============================================================================
 const likeForum = asyncHandler(async (req, res) => {
+  console.log("----",req.user.id);
   try {
     const forum = await Forum.findById(req.params.id);
     if (!forum.likes.includes(req.user.id)) {

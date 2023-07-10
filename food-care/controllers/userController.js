@@ -10,8 +10,6 @@ const firebaseDynamicLinks = new FirebaseDynamicLinks(process.env.WEB_API_KEY);
 
 //register user============================================================================
 const registerUser = asyncHandler(async (req, res, next) => {
-  console.log("=====================");
-
   if (
     !req.body.name ||
     !req.body.email ||
@@ -19,6 +17,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     !req.body.isVerify ||
     !req.body.verificationToken ||
     !req.body.deviceToken ||
+    !req.body.foodRequest||
     !req.body.password
   ) {
     res.status(400);
@@ -41,13 +40,14 @@ const registerUser = asyncHandler(async (req, res, next) => {
     isVerify: validator.toBoolean(req.body.isVerify),
     verificationToken: req.body.verificationToken,
     deviceToken: [req.body.deviceToken],
+    foodRequest:[req.body.foodRequest],
     password: hashedPassword,
   });
   if (req.file) {
     user.imageUrl = req.file.path;
   }
 
-  console.log(user.imageUrl);
+  console.log(user);
   user
     .save()
     .then((response) => {
@@ -113,6 +113,7 @@ const loginUser = asyncHandler(async (req, res) => {
           password: user.password,
           address: user.address,
           isVerify: user.isVerify,
+          foodRequest:user.foodRequest,
           verificationToken: user.verificationToken,
         },
       },
@@ -283,6 +284,23 @@ const getUsers = asyncHandler(async (req, res) => {
   res.status(200).json(users);
 });
 
+//request count
+const requestFood = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.body.userId);
+  console.log(user)
+  try {
+      if (!user.foodRequest.includes(req.body.foodId)) {
+        console.log("no")
+        await user.updateOne({ $push: { foodRequest: req.body.foodId } });
+        res.status(200).json("The food has been requested..");
+      } else {
+        console.log("yes")
+        await user.updateOne({ $pull: { foodRequest: req.body.foodId } });
+        res.status(200).json("The request has been canceled.");
+      }
+  } catch (err) {}
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -291,6 +309,7 @@ module.exports = {
   getUsers,
   updateUser,
   verifyUser,
+  requestFood,
   postForgetPassowrd,
   postResetPassowrd,
 };

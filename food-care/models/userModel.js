@@ -12,17 +12,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter the mobile number."],
     },
-    address:{
-       type: String 
+    address: {
+      type: String,
     },
     imageUrl: { type: String },
-    isVerify:{type:Boolean},
-    verificationToken:{type:String},
+    isVerify: { type: Boolean },
+    verificationToken: { type: String },
+    foodRequest: { type: Array, default: [] },
     deviceToken: {
       type: Array,
     },
     password: { type: String, required: [true, "Please enter the password."] },
-   
   },
   {
     timestamps: true,

@@ -89,18 +89,52 @@ const verifyUser = asyncHandler(async (req, res) => {
 });
 
 //login user======================================================================
+// const loginUser = asyncHandler(async (req, res) => {
+//   const { email, password, deviceToken } = req.body;
+//   if (!email || !password || !deviceToken) {
+//     res.status(400);
+//     throw new Error("All fields requeried.");
+//   }
+//   const user = await User.findOne({ email });
+
+//   if (user && (await bcrypt.compare(password, user.password))) {
+//     if (!user.deviceToken.includes(deviceToken)) {
+//       await user.updateOne({ $push: { deviceToken: deviceToken } });
+//     }
+//     const accessToken = jwt.sign(
+//       {
+//         user: {
+//           id: user.id,
+//           name: user.name,
+//           email: user.email,
+//           phone: user.phone,
+//           deviceToken: user.deviceToken,
+//           imageUrl: user.imageUrl,
+//           password: user.password,
+//           address: user.address,
+//           isVerify: user.isVerify,
+//           foodRequest:user.foodRequest,
+//           verificationToken: user.verificationToken,
+//         },
+//       },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "30d" }
+//     );
+//     res.status(200).json({ accessToken, user });
+//   } else {
+//     res.status(401);
+//     throw new Error("Email or password s incorrecrt.");
+//   }
+// });
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password, deviceToken } = req.body;
-  if (!email || !password || !deviceToken) {
+  const { email, password} = req.body;
+  if (!email || !password) {
     res.status(400);
     throw new Error("All fields requeried.");
   }
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
-    if (!user.deviceToken.includes(deviceToken)) {
-      await user.updateOne({ $push: { deviceToken: deviceToken } });
-    }
     const accessToken = jwt.sign(
       {
         user: {
@@ -108,7 +142,6 @@ const loginUser = asyncHandler(async (req, res) => {
           name: user.name,
           email: user.email,
           phone: user.phone,
-          deviceToken: user.deviceToken,
           imageUrl: user.imageUrl,
           password: user.password,
           address: user.address,

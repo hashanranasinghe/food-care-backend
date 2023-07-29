@@ -15,6 +15,10 @@ const router = express.Router();
 const validateToken = require("../middleware/validateTokenHandler");
 const upload = require("../middleware/uploadFoodImage");
 
+
+router
+  .route("/foodadmin")
+  .get(getFoodPosts);
 router.use(validateToken);
 
 router

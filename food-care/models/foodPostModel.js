@@ -7,18 +7,27 @@ const foodSchema = new mongoose.Schema(
       required: true,
       ref: "User",
     },
-    
+
     title: { type: String, required: true },
     author: { type: String },
     description: { type: String, required: true },
     quantity: { type: String },
-    other: { type: String },
-    pickupTimes: { type: String },
     listDays: { type: String },
-    isShared:{type:Boolean},
+    isShared: { type: Boolean },
     requests: {
       type: Array,
       default: [],
+    },
+    availableTime: {
+      startTime: {
+        type: String,
+      },
+      endTime: {
+        type: String,
+      },
+    },
+    category:{
+      type:String,
     },
     location: {
       lan: {

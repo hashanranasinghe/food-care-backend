@@ -10,6 +10,7 @@ const forumSchema = new mongoose.Schema(
     },
     title: { type: String, required: true },
     description: { type: String },
+    category: { type: String },
     author: { type: String },
     imageUrl: { type: String },
     likes: {

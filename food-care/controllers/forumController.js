@@ -53,6 +53,7 @@ const createForum = asyncHandler(async (req, res, next) => {
     title: req.body.title,
     description: req.body.description,
     author: req.body.author,
+    category:req.body.category,
   });
   if (req.file) {
     forum.imageUrl = req.file.path;
@@ -92,6 +93,7 @@ const updateForum = asyncHandler(async (req, res) => {
   forum.title = req.body.title || forum.title;
   forum.description = req.body.description || forum.description;
   forum.author = req.body.author || forum.author;
+  forum.category = req.body.category || forum.category;
 
   forum.updatedAt = Date.now();
   const updatedForum = await forum.save();

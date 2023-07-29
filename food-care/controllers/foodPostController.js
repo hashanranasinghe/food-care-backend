@@ -22,14 +22,17 @@ const createFoodPost = async (req, res, next) => {
     author: req.body.author,
     description: req.body.description,
     quantity: req.body.quantity,
-    other: req.body.other,
-    pickupTimes: req.body.pickupTimes,
     listDays: req.body.listDays,
     isShared: validator.toBoolean(req.body.isShared),
     location: {
       lan: req.body.location.lan,
       lon: req.body.location.lon,
     },
+    availableTime:{
+      startTime:req.body.availableTime.startTime,
+      endTime:req.body.availableTime.endTime,
+    },
+    category:req.body.category
   });
   if (req.files) {
     // <-- use req.files instead of req.file
@@ -103,13 +106,13 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   food.title = req.body.title || food.title;
   food.description = req.body.description || food.description;
   food.quantity = req.body.quantity || food.quantity;
-  food.other = req.body.other || food.other;
-  food.pickupTimes = req.body.pickupTimes || food.pickupTimes;
   food.listDays = req.body.listDays || food.listDays;
   food.isShared = validator.toBoolean(req.body.isShared) || food.isShared;
   food.location.lan = req.body.location.lan || food.location.lan;
   food.location.lon = req.body.location.lon || food.location.lon;
-
+  food.availableTime.startTime = req.body.availableTime.startTime || food.availableTime.startTime;
+  food.availableTime.endTime = req.body.availableTime.endTime || food.availableTime.endTime;
+  food.category = req.body.category || food.category;
   console.log(food);
   const updatedFood = await food.save();
 

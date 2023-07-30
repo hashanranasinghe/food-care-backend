@@ -18,6 +18,10 @@ const foodSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    acceptRequests: {
+      type: Array,
+      default: [],
+    },
     availableTime: {
       startTime: {
         type: String,

@@ -18,7 +18,15 @@ const userSchema = new mongoose.Schema(
     imageUrl: { type: String },
     isVerify: { type: Boolean },
     verificationToken: { type: String },
-    foodRequest: { type: Array, default: [] },
+    foodRequest: {
+      type: [
+        {
+          foodId: { type: String},
+          permission: { type: String},
+        },
+      ],
+      default: [],
+    },
     deviceToken: {
       type: Array,
     },

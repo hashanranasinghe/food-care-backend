@@ -17,7 +17,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     !req.body.isVerify ||
     !req.body.verificationToken ||
     !req.body.deviceToken ||
-    !req.body.foodRequest||
+    !req.body.foodRequest ||
     !req.body.password
   ) {
     res.status(400);
@@ -40,7 +40,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     isVerify: validator.toBoolean(req.body.isVerify),
     verificationToken: req.body.verificationToken,
     deviceToken: [req.body.deviceToken],
-    foodRequest:[req.body.foodRequest],
+    foodRequest: [req.body.foodRequest],
     password: hashedPassword,
   });
   if (req.file) {
@@ -113,7 +113,7 @@ const loginUser = asyncHandler(async (req, res) => {
           password: user.password,
           address: user.address,
           isVerify: user.isVerify,
-          foodRequest:user.foodRequest,
+          foodRequest: user.foodRequest,
           verificationToken: user.verificationToken,
         },
       },
@@ -317,21 +317,82 @@ const getUsers = asyncHandler(async (req, res) => {
   res.status(200).json(users);
 });
 
-//request count
+//request for food=================================================
 const requestFood = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.body.userId);
-  console.log(user)
   try {
-      if (!user.foodRequest.includes(req.body.foodId)) {
-        console.log("no")
-        await user.updateOne({ $push: { foodRequest: req.body.foodId } });
-        res.status(200).json("The food has been requested..");
+    const user = await User.findById(req.body.userId);
+    if (!user) {
+      return res.status(404).json("User not found.");
+    }
+
+    const foodId = req.body.foodId;
+    const permission = req.body.permission;
+
+    const foodRequestIndex = user.foodRequest.findIndex(
+      (request) => request.foodId === foodId
+    );
+
+    if (foodRequestIndex === -1) {
+      // If the foodId is not present in the user's foodRequest, add it.
+      const newFoodRequest = { foodId, permission };
+      user.foodRequest.push(newFoodRequest);
+      await user.save();
+      res.status(200).json("The food has been requested.");
+    } else {
+      // If the foodId is already in the user's foodRequest, remove it using the `_id` field.
+      const requestIdToDelete = req.body.foodId;
+      if (requestIdToDelete) {
+        const requestIndexToDelete = user.foodRequest.find(
+          (request) => request.foodId.toString() === requestIdToDelete
+        );
+        if (requestIndexToDelete !== -1) {
+          user.foodRequest.splice(requestIndexToDelete, 1);
+          await user.save();
+          res.status(200).json("The request has been canceled.");
+        } else {
+          res.status(404).json("Request not found.");
+        }
       } else {
-        console.log("yes")
-        await user.updateOne({ $pull: { foodRequest: req.body.foodId } });
-        res.status(200).json("The request has been canceled.");
+        res.status(400).json("Missing _id field.");
       }
-  } catch (err) {}
+    }
+  } catch (err) {
+    // Handle any errors that occur during the process
+    console.error(err);
+    res.status(500).json("Server error.");
+  }
+});
+
+//update state of request food========================================
+const updatePermission = asyncHandler(async (req, res) => {
+  try {
+    const { userId, foodId, permission } = req.body;
+    const user = await User.findOne({
+      _id: userId,
+    });
+    console.log(user);
+    if (!user) {
+      return res.status(404).json("User not found.");
+    }
+
+    const foodRequestToUpdate = user.foodRequest.find(
+      (request) => request.foodId.toString() === foodId
+    );
+
+    if (!foodRequestToUpdate) {
+      return res.status(404).json("Request not found.");
+    }
+
+    // Update the permission for the food request
+    foodRequestToUpdate.permission = permission;
+    await user.save();
+
+    res.status(200).json("Permission updated successfully.");
+  } catch (err) {
+    // Handle any errors that occur during the process
+    console.error(err);
+    res.status(500).json("Server error.");
+  }
 });
 
 module.exports = {
@@ -345,4 +406,5 @@ module.exports = {
   requestFood,
   postForgetPassowrd,
   postResetPassowrd,
+  updatePermission,
 };

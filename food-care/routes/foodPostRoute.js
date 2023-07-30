@@ -10,6 +10,8 @@ const {
   deleteFoodPostImages,
   shareFoodPost,
   requestFood,
+  acceptFood,
+  rejectFood,
 } = require("../controllers/foodPostController");
 const router = express.Router();
 const validateToken = require("../middleware/validateTokenHandler");
@@ -28,6 +30,8 @@ router
 router.route("/ownfood").get(getOwnFoods);
 router.route("/:id").get(getFoodPost);
 router.route("/:id/request").put(requestFood);
+router.route("/accept").put(acceptFood);
+router.route("/reject").put(rejectFood);
 
 router
   .route("/ownfood/:id")

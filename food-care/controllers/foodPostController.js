@@ -28,11 +28,11 @@ const createFoodPost = async (req, res, next) => {
       lan: req.body.location.lan,
       lon: req.body.location.lon,
     },
-    availableTime:{
-      startTime:req.body.availableTime.startTime,
-      endTime:req.body.availableTime.endTime,
+    availableTime: {
+      startTime: req.body.availableTime.startTime,
+      endTime: req.body.availableTime.endTime,
     },
-    category:req.body.category
+    category: req.body.category,
   });
   if (req.files) {
     // <-- use req.files instead of req.file
@@ -110,8 +110,10 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   food.isShared = validator.toBoolean(req.body.isShared) || food.isShared;
   food.location.lan = req.body.location.lan || food.location.lan;
   food.location.lon = req.body.location.lon || food.location.lon;
-  food.availableTime.startTime = req.body.availableTime.startTime || food.availableTime.startTime;
-  food.availableTime.endTime = req.body.availableTime.endTime || food.availableTime.endTime;
+  food.availableTime.startTime =
+    req.body.availableTime.startTime || food.availableTime.startTime;
+  food.availableTime.endTime =
+    req.body.availableTime.endTime || food.availableTime.endTime;
   food.category = req.body.category || food.category;
   console.log(food);
   const updatedFood = await food.save();
@@ -122,7 +124,7 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   });
 });
 
-//requet for food================================================================
+//request for food================================================================
 const requestFood = asyncHandler(async (req, res) => {
   try {
     const food = await Food.findById(req.params.id);
@@ -140,6 +142,53 @@ const requestFood = asyncHandler(async (req, res) => {
       res.status(200).json("The request has been canceled.");
     }
   } catch (err) {}
+});
+
+//reject request for food================================================================
+
+const rejectFood = asyncHandler(async (req, res) => {
+  console.log("++++++++++++++++++++++++++++++++++");
+  const { foodId, requesterId } = req.body;
+  console.log(foodId);
+  console.log(requesterId);
+  try {
+    const food = await Food.findOne({
+      _id: foodId,
+    });
+    console.log(food);
+    if (food.requests.includes(requesterId)) {
+      console.log("++++++++++++++++++++++++++++++++++");
+      await food.updateOne({ $pull: { requests: requesterId } });
+      res.status(200).json("The food has been rejected..");
+    } else {
+      res.status(400).json("The food has already been rejected by this user.");
+    }
+  } catch (err) {
+    console.error("Error rejecting food:", err);
+    res.status(500).json("Error accepting food.");
+  }
+});
+
+//accept request for food================================================================
+
+const acceptFood = asyncHandler(async (req, res) => {
+  const { foodId, requesterId } = req.body;
+
+  try {
+    const food = await Food.findOne({
+      _id: foodId,
+    });
+    console.log(food);
+    if (food.requests.includes(requesterId)) {
+      await food.updateOne({ $push: { acceptRequests: requesterId } });
+      res.status(200).json("The food has been accepted..");
+    } else {
+      res.status(400).json("The food has already been accepted by this user.");
+    }
+  } catch (err) {
+    console.error("Error accepting food:", err);
+    res.status(500).json("Error accepting food.");
+  }
 });
 
 //delete a food======================================================================
@@ -228,4 +277,6 @@ module.exports = {
   getFoodPost,
   deleteFoodPostImages,
   requestFood,
+  acceptFood,
+  rejectFood,
 };

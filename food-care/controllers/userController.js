@@ -10,6 +10,8 @@ const firebaseDynamicLinks = new FirebaseDynamicLinks(process.env.WEB_API_KEY);
 
 //register user============================================================================
 const registerUser = asyncHandler(async (req, res, next) => {
+  const allowedRoles = ['ADMIN', 'DONOR', 'RECEIPIAN'];
+
   if (
     !req.body.name ||
     !req.body.email ||
@@ -18,11 +20,18 @@ const registerUser = asyncHandler(async (req, res, next) => {
     !req.body.verificationToken ||
     !req.body.deviceToken ||
     !req.body.foodRequest ||
-    !req.body.password
+    !req.body.password ||
+    !req.body.role
   ) {
     res.status(400);
     throw new Error("Name, email,phone,password are required.");
   }
+  if (!allowedRoles.includes(req.body.role)) {
+    res.status(400);
+    throw new Error("Invalid role.");
+  }
+
+
   const email = req.body.email;
   const userAvailable = await User.findOne({ email });
   if (userAvailable) {
@@ -39,8 +48,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
     address: req.body.address,
     isVerify: validator.toBoolean(req.body.isVerify),
     verificationToken: req.body.verificationToken,
+    role: req.body.role,
     deviceToken: [req.body.deviceToken],
-    foodRequest: [req.body.foodRequest],
+    foodRequest: [],
     password: hashedPassword,
   });
   if (req.file) {
@@ -90,6 +100,7 @@ const verifyUser = asyncHandler(async (req, res) => {
 
 //login user======================================================================
 const loginUser = asyncHandler(async (req, res) => {
+
   const { email, password, deviceToken } = req.body;
   if (!email || !password || !deviceToken) {
     res.status(400);
@@ -115,6 +126,7 @@ const loginUser = asyncHandler(async (req, res) => {
           isVerify: user.isVerify,
           foodRequest: user.foodRequest,
           verificationToken: user.verificationToken,
+          role:user.role,
         },
       },
       process.env.JWT_SECRET,
@@ -126,39 +138,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new Error("Email or password s incorrecrt.");
   }
 });
-// const loginUser = asyncHandler(async (req, res) => {
-//   const { email, password} = req.body;
-//   if (!email || !password) {
-//     res.status(400);
-//     throw new Error("All fields requeried.");
-//   }
-//   const user = await User.findOne({ email });
 
-//   if (user && (await bcrypt.compare(password, user.password))) {
-//     const accessToken = jwt.sign(
-//       {
-//         user: {
-//           id: user.id,
-//           name: user.name,
-//           email: user.email,
-//           phone: user.phone,
-//           imageUrl: user.imageUrl,
-//           password: user.password,
-//           address: user.address,
-//           isVerify: user.isVerify,
-//           foodRequest:user.foodRequest,
-//           verificationToken: user.verificationToken,
-//         },
-//       },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "30d" }
-//     );
-//     res.status(200).json({ accessToken, user });
-//   } else {
-//     res.status(401);
-//     throw new Error("Email or password s incorrecrt.");
-//   }
-// });
 
 //current user======================================================================
 const currentUser = asyncHandler(async (req, res) => {

@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -18,6 +19,7 @@ const userSchema = new mongoose.Schema(
     imageUrl: { type: String },
     isVerify: { type: Boolean },
     verificationToken: { type: String },
+    role: { type: String, enum: ['ADMIN', 'DONOR', 'RECEIPIAN'], required: true },
     foodRequest: {
       type: [
         {

@@ -16,7 +16,7 @@ const {
 const router = express.Router();
 const validateToken = require("../middleware/validateTokenHandler");
 const upload = require("../middleware/uploadFoodImage");
-
+const authorizeRoles = require("../middleware/authorizeRoles");
 
 router
   .route("/foodadmin")

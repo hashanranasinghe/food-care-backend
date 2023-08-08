@@ -12,7 +12,6 @@ const foodSchema = new mongoose.Schema(
     author: { type: String },
     description: { type: String, required: true },
     quantity: { type: String },
-    listDays: { type: String },
     isShared: { type: Boolean },
     requests: {
       type: Array,

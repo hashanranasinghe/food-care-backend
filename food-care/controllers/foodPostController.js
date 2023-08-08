@@ -22,7 +22,6 @@ const createFoodPost = async (req, res, next) => {
     author: req.body.author,
     description: req.body.description,
     quantity: req.body.quantity,
-    listDays: req.body.listDays,
     isShared: validator.toBoolean(req.body.isShared),
     location: {
       lan: req.body.location.lan,
@@ -106,7 +105,6 @@ const updateFoodPost = asyncHandler(async (req, res) => {
   food.title = req.body.title || food.title;
   food.description = req.body.description || food.description;
   food.quantity = req.body.quantity || food.quantity;
-  food.listDays = req.body.listDays || food.listDays;
   food.isShared = validator.toBoolean(req.body.isShared) || food.isShared;
   food.location.lan = req.body.location.lan || food.location.lan;
   food.location.lon = req.body.location.lon || food.location.lon;
